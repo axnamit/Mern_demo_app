@@ -55,6 +55,13 @@ router.post("/register", (req, res) => {
 
 router.post("/login", (req, res) => {
 
+    const { error, isValid } = validateLogin(req.body);
+
+    if (!isValid) {
+        return res.status(400).json({success:false,message:"something went wrong"});
+    }
+
+
     const email = req.body.email;
     const passwd = req.body.password;
 
@@ -74,8 +81,8 @@ router.post("/login", (req, res) => {
             } else {
                 return res.status(400).json({ success: false, message: "password doesent matched" });
             }
-        })
-    })
+        });
+    });
 
 });
 module.exports = router;
