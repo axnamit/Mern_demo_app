@@ -29,4 +29,4 @@ app.use('/', indexRouter);
 app.use('/api/',users);
 
 const port = 5002;
-app.listen(port, () => console.log("app is started at 5000"));
+app.listen(port, () => console.log("app is started at "+port));

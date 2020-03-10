@@ -10,7 +10,7 @@ const validateLogin = require("../../validators/login");
 
 const User = require("../../models/user");
 
-
+//post body
 router.post("/register", (req, res) => {
 
     const { error, isValid } = validatorRegisterInput(req.body);
@@ -52,13 +52,13 @@ router.post("/register", (req, res) => {
 
 });
 
-
+//post body
 router.post("/login", (req, res) => {
 
     const { error, isValid } = validateLogin(req.body);
 
     if (!isValid) {
-        return res.status(400).json({success:false,message:"something went wrong"});
+        return res.status(400).json({ success: false, message: "something went wrong" });
     }
 
 
@@ -76,7 +76,11 @@ router.post("/login", (req, res) => {
 
                 jwt.sign(payload, keys.secertOrKey, { expiresIn: 31556926 },
                     (err, token) => {
-                        res.json({ success: true, token: token, message: "login successful" });
+                        if (token) {
+                            res.json({ success: true, token: token, message: "login successful" });
+                        } else {
+                            res.json({ success: false, token: err, message: "login failded" });
+                        }
                     });
             } else {
                 return res.status(400).json({ success: false, message: "password doesent matched" });
@@ -85,4 +89,28 @@ router.post("/login", (req, res) => {
     });
 
 });
+
+//get body
+router.get("/list",(req,res)=>{
+    User.find({}).then(list=>{
+        if(list){
+            res.json({success:true,data:list,message:"data fetched succesfully"});
+        }else{
+            res.json({success:false,data:[],message:"data fetched succesfully"});
+        }
+       
+    });
+});
+
+//params
+router.get("/paramscheck/:para",(req,res)=>{
+    res.json(req.params.para);
+});
+
+
+//query
+router.get("/querycheck",(req,res)=>{
+    res.json({alpha:req.query.alpha,amit:req.query.amit});
+})
+
 module.exports = router;
