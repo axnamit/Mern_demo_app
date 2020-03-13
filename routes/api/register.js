@@ -3,12 +3,27 @@ const router = express.Router();
 const bycrpypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
+const multer = require('multer')
 
 
 const validatorRegisterInput = require("../../validators/register");
 const validateLogin = require("../../validators/login");
 
 const User = require("../../models/user");
+const UploadImage = require("../../models/upladimage");
+
+const DIR = "./public/images/users";
+var path = require("path");
+let storage = multer.diskStorage({
+    destination: function (req, file, callback) {
+        callback(null, DIR);
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+let upload = multer({ storage: storage });
+
 
 //post body
 router.post("/register", (req, res) => {
@@ -91,26 +106,62 @@ router.post("/login", (req, res) => {
 });
 
 //get body
-router.get("/list",(req,res)=>{
-    User.find({}).then(list=>{
-        if(list){
-            res.json({success:true,data:list,message:"data fetched succesfully"});
-        }else{
-            res.json({success:false,data:[],message:"data fetched succesfully"});
+router.get("/list", (req, res) => {
+    User.find({}).then(list => {
+        if (list) {
+            res.json({ success: true, data: list, message: "data fetched succesfully" });
+        } else {
+            res.json({ success: false, data: [], message: "data fetched succesfully" });
         }
-       
+
     });
 });
 
 //params
-router.get("/paramscheck/:para",(req,res)=>{
+router.get("/paramscheck/:para", (req, res) => {
     res.json(req.params.para);
 });
 
 
 //query
-router.get("/querycheck",(req,res)=>{
-    res.json({alpha:req.query.alpha,amit:req.query.amit});
+router.get("/querycheck", (req, res) => {
+    res.json({ alpha: req.query.alpha, amit: req.query.amit });
 })
 
+
+//upload photo
+router.post("/upload", upload.single('image'), (req, res) => {
+
+    var image = UploadImage({
+        image: req.file.filename
+    });
+
+    image.save().then(uplaod1 => res.json({
+        success: true,
+        data: uplaod1,
+        message: "file uploaded successfully"
+    })).catch(err => console.log(err));
+
+
+
+
+});
+
+router.get('/allimages', (req, res) => {
+
+    UploadImage.find({}).then(list => {
+        if (list) {
+            res.json({
+                success: true,
+                data: list,
+                message: "all file fetched successfully"
+            })
+        } else {
+            res.json({ success: false, data: [], message: "data fetched succesfully" });
+
+        }
+    })
+
+
+});
 module.exports = router;
