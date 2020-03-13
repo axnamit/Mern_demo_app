@@ -3,7 +3,8 @@ const router = express.Router();
 const bycrpypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
-const multer = require('multer')
+const multer = require('multer');
+const fs = require('fs');
 
 
 const validatorRegisterInput = require("../../validators/register");
@@ -29,6 +30,8 @@ let upload = multer({ storage: storage });
 router.post("/register", (req, res) => {
 
     const { error, isValid } = validatorRegisterInput(req.body);
+
+
 
 
 
@@ -146,14 +149,30 @@ router.post("/upload", upload.single('image'), (req, res) => {
 
 
 });
-
+//list of images 
 router.get('/allimages', (req, res) => {
 
     UploadImage.find({}).then(list => {
         if (list) {
+            var list2 = []
+            var entriesToDelete = [];
+            list.forEach((i) => {
+                if (fs.existsSync(DIR + '/' + i.image)) {
+                    //file exists
+                    list2.push(i.image);
+                } else {
+                    entriesToDelete.push(i.image);
+                }
+
+            });
+            // console.log(entriesToDelete);
+            // perform delete action
+            deleteFakeEntries(entriesToDelete);
+
+
             res.json({
                 success: true,
-                data: list,
+                data: list2,
                 message: "all file fetched successfully"
             })
         } else {
@@ -164,4 +183,22 @@ router.get('/allimages', (req, res) => {
 
 
 });
+
+function deleteFakeEntries(data) {
+    console.log("dele");
+    for (const key in data) {
+        console.log(key);
+        var myquery = { image: data[key] };
+        UploadImage.deleteOne(myquery,  (err, obj)=> {
+            if (err) throw err;
+            console.log("1 document deleted");
+
+        });
+
+    }
+}
+
+
+
+
 module.exports = router;
