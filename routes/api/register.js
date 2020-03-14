@@ -12,8 +12,9 @@ const User = require("../../models/user");
 const UploadImage = require("../../models/upladimage");
 
 var middleware = require("../../middleware/middleware");
+const configdb = require("../../models/config");
 
-
+var usierUpdatedValue = 0;
 const DIR = "./public/images/users";
 var path = require("path");
 let storage = multer.diskStorage({
@@ -41,27 +42,59 @@ router.post("/register", (req, res, next) => {
 
         }
     });
+    
+    configdb.findOne()
+        .then(returenValue => {
+            if (returenValue == null) {
+                console.log('id not found');
+                //call function to create config varible 
+                //usierUpdatedValue = 0;
+                usercreateSchemainDb(usierUpdatedValue);
+            } else {
+                console.log('id found :' + returenValue.userid);
+                usierUpdatedValue = ++returenValue.userid;
 
-    const newUser = new User({
-        name: req.body.name,
-        email: req.body.email,
-        password: req.body.password
+                console.log("value ==" + usierUpdatedValue)
 
+                var valuee = usierUpdatedValue.toString();
 
-    });
+                console.log("value going to save" + usierUpdatedValue);
+                const newUser = new User({
+                    userid: valuee,
+                    name: req.body.name,
+                    email: req.body.email,
+                    password: req.body.password
+            
+            
+                });
+            
+                bycrpypt.genSalt(10, (err, salt) => {
+                    bycrpypt.hash(newUser.password, salt, (err, hash) => {
+                        if (err) throw err;
+            
+                        newUser.password = hash;
+                        newUser.save()
+                            .then(user => res.
+                                json(user))
+                            .catch(err => console.log(err));
+            
+                    });
+                });
 
-    bycrpypt.genSalt(10, (err, salt) => {
-        bycrpypt.hash(newUser.password, salt, (err, hash) => {
-            if (err) throw err;
+                configdb.updateOne({ userid: usierUpdatedValue })
+                    .then(res => {
+                        console.log("useridupdate" + res);
 
-            newUser.password = hash;
-            newUser.save()
-                .then(user => res.
-                    json(user))
-                .catch(err => console.log(err));
+                    }).catch(err => {
+                        console.log("error occured" + err);
+                    })
 
+            }
+
+        }).catch(err => {
+            console.log(err);
         });
-    });
+   
 
 
 });
@@ -146,7 +179,7 @@ router.post("/upload", upload.single('image'), (req, res) => {
 
 });
 //list of images 
-router.get('/allimages', middleware, (req, res, next) => {
+router.get('/allimages', (req, res, next) => {
 
     UploadImage.find({}).then(list => {
         if (list) {
@@ -194,6 +227,19 @@ function deleteFakeEntries(data) {
     }
 }
 
+function usercreateSchemainDb(useridget) {
+
+    var confid = new configdb({
+        userid: useridget
+    })
+    confid.save().then(res => {
+        console.log('true:' + res + ' id :' + useridget)
+        return res.userid;
+    }).catch(err => {
+        console.log("errorerr" + err);
+
+    })
+}
 
 
 
