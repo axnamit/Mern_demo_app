@@ -5,13 +5,14 @@ const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
 const multer = require('multer');
 const fs = require('fs');
-
-
 const validatorRegisterInput = require("../../validators/register");
 const validateLogin = require("../../validators/login");
 
 const User = require("../../models/user");
 const UploadImage = require("../../models/upladimage");
+
+var middleware = require("../../middleware/middleware");
+
 
 const DIR = "./public/images/users";
 var path = require("path");
@@ -27,14 +28,9 @@ let upload = multer({ storage: storage });
 
 
 //post body
-router.post("/register", (req, res) => {
+router.post("/register", (req, res, next) => {
 
     const { error, isValid } = validatorRegisterInput(req.body);
-
-
-
-
-
     if (!isValid) {
         return res.status(400).json(error)
     }
@@ -150,7 +146,7 @@ router.post("/upload", upload.single('image'), (req, res) => {
 
 });
 //list of images 
-router.get('/allimages', (req, res) => {
+router.get('/allimages', middleware, (req, res, next) => {
 
     UploadImage.find({}).then(list => {
         if (list) {
@@ -185,11 +181,11 @@ router.get('/allimages', (req, res) => {
 });
 
 function deleteFakeEntries(data) {
-    console.log("dele");
+    //console.log("dele");
     for (const key in data) {
         console.log(key);
-        var myquery = { image: data[key] };
-        UploadImage.deleteOne(myquery,  (err, obj)=> {
+        const myquery = { image: data[key] };
+        UploadImage.deleteOne(myquery, (err, obj) => {
             if (err) throw err;
             console.log("1 document deleted");
 

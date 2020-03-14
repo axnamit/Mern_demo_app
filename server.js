@@ -5,7 +5,8 @@ const app = express();
 var users = require("./routes/api/register");
 var indexRouter = require('./routes/index');
 const passport = require("passport");
-
+var middleware = require('./middleware/middleware');
+require('custom-env').env;
 
 app.use(
     bodyParser.urlencoded({
@@ -22,7 +23,7 @@ mongoose.connect(dbKeys,
     })
     .then(() => console.log("db conncted"))
     .catch(err => console.log(err));
-
+//app.use(middleware);
 app.use(passport.initialize());
 require("./config/passport")(passport);
 
@@ -30,5 +31,8 @@ app.use('/', indexRouter);
 
 app.use('/api/', users);
 
-const port = 5000;
+//app.use('/middleware/',middleware);
+
+const port = process.env.port || 5900;
 app.listen(port, () => console.log("app is started at " + port));
+
