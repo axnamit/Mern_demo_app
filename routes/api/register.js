@@ -119,7 +119,7 @@ router.post("/login", (req, res) => {
 
         bycrpypt.compare(passwd, user.password).then(isMatched => {
             if (isMatched) {
-                const payload = { id: user.id, name: user.name };
+                const payload = { userid: user.userid, name: user.name };
 
                 jwt.sign(payload, keys.secertOrKey, { expiresIn: 31556926 },
                     (err, token) => {
@@ -179,7 +179,7 @@ router.post("/upload", upload.single('image'), (req, res) => {
 
 });
 //list of images 
-router.get('/allimages', (req, res, next) => {
+router.get('/allimages',middleware, (req, res, next) => {
 
     UploadImage.find({}).then(list => {
         if (list) {
